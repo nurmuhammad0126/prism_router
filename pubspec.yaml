@@ -1,0 +1,19 @@
+name: elixir
+description: "A declarative Navigator 2.0 helper."
+version: 0.1.0
+
+homepage: https://github.com/Miracle-Blue/elixir
+
+environment:
+  sdk: ^3.7.2
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  web: ^0.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

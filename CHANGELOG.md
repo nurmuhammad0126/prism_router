@@ -1,0 +1,14 @@
+## 0.1.0
+
+* added automatic browser history & URL syncing on Flutter web
+* fixed browser back/forward handling by mirroring route information updates
+* improved refresh resilience by using multi-entry history snapshots
+* exported navigation type definitions for easier reuse
+
+## 0.0.2
+
+* added Elixir controller extension
+
+## 0.0.1
+
+* initial configuration

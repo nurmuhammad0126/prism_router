@@ -36,8 +36,14 @@ final class HomePage extends AppPage {
 }
 
 final class SettingsPage extends AppPage {
-  SettingsPage({required final String data})
-    : super(child: SettingsScreen(data: data), name: 'settings');
+  SettingsPage({required this.data})
+    : super(
+        child: SettingsScreen(data: data),
+        name: 'settings',
+        arguments: {'data': data},
+      );
+
+  final String data;
 
   @override
   Route<void> createRoute(BuildContext context) =>

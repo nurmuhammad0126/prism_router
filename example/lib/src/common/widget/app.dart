@@ -27,6 +27,7 @@ class _AppState extends State<App> with RouteStateMixin {
         (context, _) => Elixir.controlled(
           controller: ValueNotifier(initialPages),
           guards: guards,
+          routes: routes,
         ),
   );
 }

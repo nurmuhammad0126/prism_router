@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ class Elixir extends StatefulWidget {
     this.transitionDelegate = const DefaultTransitionDelegate<Object?>(),
     this.revalidate,
     this.onBackButtonPressed,
+    this.routes = const [],
+    this.routeDecoder,
     super.key,
   }) : assert(pages.isNotEmpty, 'pages cannot be empty'),
        controller = null;
@@ -34,6 +37,8 @@ class Elixir extends StatefulWidget {
     this.transitionDelegate = const DefaultTransitionDelegate<Object?>(),
     this.revalidate,
     this.onBackButtonPressed,
+    this.routes = const [],
+    this.routeDecoder,
     super.key,
   }) : assert(controller.value.isNotEmpty, 'controller cannot be empty'),
        pages = controller.value;
@@ -92,6 +97,15 @@ class Elixir extends StatefulWidget {
   )?
   onBackButtonPressed;
 
+  /// Optional static route definitions. When provided, Elixir can persist the
+  /// navigation stack across browser refreshes by re-instantiating pages.
+  final List<ElixirRouteDefinition> routes;
+
+  /// Optional callback that rebuilds a page stack from a browser location/state
+  /// pair. Provide this if you want hard refreshes on Flutter web to restore
+  /// the previous navigation stack.
+  final ElixirRouteDecoder? routeDecoder;
+
   @override
   State<Elixir> createState() => ElixirState();
 }
@@ -124,6 +138,8 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
   String? _currentBrowserSnapshotKey;
   String? _lastSyncedLocation;
   int _browserSnapshotSeed = 0;
+  Map<String, ElixirRouteDefinition> _routeBuilders =
+      <String, ElixirRouteDefinition>{};
 
   static const int _maxBrowserSnapshots = 256;
 
@@ -131,7 +147,9 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _state = widget.pages;
+    _routeBuilders = {for (final route in widget.routes) route.name: route};
+    _browserHistorySync = _createBrowserHistorySync();
+    _state = _tryRestoreInitialState() ?? widget.pages;
     widget.revalidate?.addListener(revalidate);
 
     _observer = ElixirObserver$NavigatorImpl(_state);
@@ -155,6 +173,9 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
     if (!identical(widget.revalidate, oldWidget.revalidate)) {
       oldWidget.revalidate?.removeListener(revalidate);
       widget.revalidate?.addListener(revalidate);
+    }
+    if (!listEquals(widget.routes, oldWidget.routes)) {
+      _routeBuilders = {for (final route in widget.routes) route.name: route};
     }
     if (!identical(widget.observers, oldWidget.observers)) {
       _observers = <NavigatorObserver>[_navigatorObserver, ...widget.observers];
@@ -265,12 +286,42 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
+  ElixirNavigationState? _tryRestoreInitialState() {
+    final sync = _browserHistorySync;
+    final decoder = widget.routeDecoder;
+    if (sync == null) return null;
+    final payload = sync.readInitialPayload();
+    if (payload == null) return null;
+    ElixirNavigationState? decoded;
+    if (payload.snapshot != null) {
+      decoded = _decodeSnapshot(payload.snapshot!);
+    }
+    if (decoded == null && decoder != null) {
+      decoded = decoder(payload.location, payload.stateKey);
+    }
+    if (decoded == null || decoded.isEmpty) return null;
+    final ctx = context;
+    final guarded = widget.guards.fold(decoded.toList(), (s, g) => g(ctx, s));
+    if (guarded.isEmpty) return null;
+    final normalized = _locationFromState(guarded);
+    final snapshot = UnmodifiableListView<ElixirPage>(guarded);
+    final key = _storeBrowserSnapshot(
+      snapshot,
+      location: normalized,
+      key: payload.stateKey,
+    );
+    _currentBrowserSnapshotKey = key;
+    _lastSyncedLocation = normalized;
+    return snapshot;
+  }
+
   void _initializeBrowserHistory() {
-    final sync = _createBrowserHistorySync();
+    final sync = _browserHistorySync;
     if (sync == null) return;
-    _browserHistorySync = sync;
-    final location = _locationFromState(_state);
-    final snapshotKey = _storeBrowserSnapshot(_state, location: location);
+    final location = _lastSyncedLocation ?? _locationFromState(_state);
+    final snapshotKey =
+        _currentBrowserSnapshotKey ??
+        _storeBrowserSnapshot(_state, location: location);
     _currentBrowserSnapshotKey = snapshotKey;
     _lastSyncedLocation = location;
     sync.initialize(stateKey: snapshotKey, location: location);
@@ -309,14 +360,16 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
   String _storeBrowserSnapshot(
     ElixirNavigationState state, {
     required String location,
+    String? key,
   }) {
-    final key =
+    final snapshotKey =
+        key ??
         '${DateTime.now().microsecondsSinceEpoch}-${_browserSnapshotSeed++}';
     final snapshot = List<ElixirPage>.unmodifiable(state.toList());
-    _browserSnapshots[key] = snapshot;
+    _browserSnapshots[snapshotKey] = snapshot;
     _browserSnapshotsByLocation[location] = snapshot;
-    _browserLocationsByKey[key] = location;
-    _browserSnapshotOrder.addLast(key);
+    _browserLocationsByKey[snapshotKey] = location;
+    _browserSnapshotOrder.addLast(snapshotKey);
     if (_browserSnapshotOrder.length > _maxBrowserSnapshots) {
       final oldest = _browserSnapshotOrder.removeFirst();
       _browserSnapshots.remove(oldest);
@@ -325,12 +378,22 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
         _browserSnapshotsByLocation.remove(oldestLocation);
       }
     }
-    return key;
+    _persistSnapshotForKey(snapshotKey, snapshot);
+    return snapshotKey;
   }
 
   bool _applySnapshotFromHistory(String? stateKey, {String? location}) {
     if (stateKey == null && location == null) return false;
     var snapshot = stateKey != null ? _browserSnapshots[stateKey] : null;
+    if (snapshot == null && stateKey != null) {
+      final persisted = _browserHistorySync?.snapshotFor(stateKey);
+      if (persisted != null) {
+        snapshot = _decodeSnapshot(persisted);
+        if (snapshot != null) {
+          _browserSnapshots[stateKey] = snapshot;
+        }
+      }
+    }
     snapshot ??=
         location != null ? _browserSnapshotsByLocation[location] : null;
     if (snapshot == null) return false;
@@ -352,6 +415,50 @@ class ElixirState extends State<Elixir> with WidgetsBindingObserver {
     _notifyStateChanged();
     _isReplayingBrowserHistory = false;
     return true;
+  }
+
+  void _persistSnapshotForKey(String key, ElixirNavigationState state) {
+    final sync = _browserHistorySync;
+    if (sync == null) return;
+    final encoded = _encodeSnapshot(state);
+    if (encoded == null) return;
+    sync.persistSnapshot(key, encoded);
+  }
+
+  String? _encodeSnapshot(ElixirNavigationState state) {
+    if (_routeBuilders.isEmpty) return null;
+    final payload = state
+        .map(
+          (page) => <String, Object?>{
+            'name': page.name,
+            'arguments': page.arguments,
+          },
+        )
+        .toList(growable: false);
+    return jsonEncode(payload);
+  }
+
+  ElixirNavigationState? _decodeSnapshot(String encoded) {
+    if (_routeBuilders.isEmpty) return null;
+    final dynamic data = jsonDecode(encoded);
+    if (data is! List) return null;
+    final pages = <ElixirPage>[];
+    for (final entry in data) {
+      if (entry is! Map) return null;
+      final name = entry['name'];
+      if (name is! String) return null;
+      final definition = _routeBuilders[name];
+      if (definition == null) return null;
+      final rawArgs = entry['arguments'];
+      final args =
+          rawArgs is Map
+              ? rawArgs.map<String, Object?>(
+                (key, value) => MapEntry(key.toString(), value),
+              )
+              : const <String, Object?>{};
+      pages.add(definition.builder(args));
+    }
+    return pages;
   }
 
   String? _stateKeyFromRouteInformation(RouteInformation routeInformation) {

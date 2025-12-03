@@ -287,6 +287,34 @@ Elixir keeps the Navigator state and the browser URL in sync, so forward/back bu
 
 Internally this is powered by `SystemNavigator.routeInformationUpdated` and a snapshot cache, so the browser's multi-entry history is always aware of your current `ElixirNavigationState`. No additional configuration or route-parser plumbing is required.
 
+If you want a hard refresh (`Cmd+R`, F5, etc.) to restore the previous stack, provide the optional `routes` parameter when constructing `Elixir`. Each `ElixirRouteDefinition` teaches Elixir how to rebuild a page from its `name` and `arguments`. Once the routes are registered, Elixir automatically persists the stack to `sessionStorage` and rehydrates it on reload—no manual parsers required.
+
+```dart
+Elixir.controlled(
+  controller: ValueNotifier(initialPages),
+  guards: guards,
+  routes: const [
+    ElixirRouteDefinition(
+      name: 'home',
+      builder: (_) => HomePage(),
+    ),
+    ElixirRouteDefinition(
+      name: 'profile',
+      builder: (_) => ProfilePage(),
+    ),
+    ElixirRouteDefinition(
+      name: 'details',
+      builder: (args) => DetailsPage(
+        userId: args['userId'] as String? ?? '',
+        note: args['note'] as String? ?? '',
+      ),
+    ),
+  ],
+);
+```
+
+> **Heads up:** pass any data you’ll need to rebuild a page through the `arguments` parameter of `ElixirPage`. Those arguments are what get serialized between refreshes.
+
 ### Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

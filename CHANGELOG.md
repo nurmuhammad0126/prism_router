@@ -1,6 +1,7 @@
 ## 0.1.0
 
 * added automatic browser history & URL syncing on Flutter web
+* added optional `routeDecoder` to restore stacks after browser refreshes
 * fixed browser back/forward handling by mirroring route information updates
 * improved refresh resilience by using multi-entry history snapshots
 * exported navigation type definitions for easier reuse

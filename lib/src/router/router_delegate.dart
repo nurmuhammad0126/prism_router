@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../navigator/elixir_page.dart';
+import '../navigator/prism_page.dart';
 import 'controller.dart';
 import 'scope.dart';
 
-class ElixirRouterDelegate extends RouterDelegate<List<ElixirPage>>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<List<ElixirPage>> {
-  ElixirRouterDelegate({
+class PrismRouterDelegate extends RouterDelegate<List<PrismPage>>
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin<List<PrismPage>> {
+  PrismRouterDelegate({
     required this.controller,
     required this.transitionDelegate,
     required this.observers,
@@ -16,7 +16,7 @@ class ElixirRouterDelegate extends RouterDelegate<List<ElixirPage>>
     controller.addListener(_handleControllerChanged);
   }
 
-  final ElixirController controller;
+  final PrismController controller;
   final TransitionDelegate<Object> transitionDelegate;
   final List<NavigatorObserver> observers;
   final String? restorationScopeId;
@@ -27,7 +27,7 @@ class ElixirRouterDelegate extends RouterDelegate<List<ElixirPage>>
   GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
 
   @override
-  List<ElixirPage> get currentConfiguration => controller.state;
+  List<PrismPage> get currentConfiguration => controller.state;
 
   final NavigatorObserver _internalObserver = NavigatorObserver();
 
@@ -36,7 +36,7 @@ class ElixirRouterDelegate extends RouterDelegate<List<ElixirPage>>
   }
 
   @override
-  Widget build(BuildContext context) => ElixirScope(
+  Widget build(BuildContext context) => PrismScope(
     controller: controller,
     child: Navigator(
       key: navigatorKey,
@@ -54,7 +54,7 @@ class ElixirRouterDelegate extends RouterDelegate<List<ElixirPage>>
   );
 
   @override
-  Future<void> setNewRoutePath(List<ElixirPage> configuration) {
+  Future<void> setNewRoutePath(List<PrismPage> configuration) {
     controller.setFromRouter(configuration);
     return SynchronousFuture<void>(null);
   }

@@ -2,27 +2,26 @@ import 'package:flutter/widgets.dart';
 
 import 'controller.dart';
 
-class ElixirScope extends StatefulWidget {
-  const ElixirScope({required this.controller, required this.child, super.key});
+class PrismScope extends StatefulWidget {
+  const PrismScope({required this.controller, required this.child, super.key});
 
-  final ElixirController controller;
+  final PrismController controller;
   final Widget child;
 
-  static ElixirController of(BuildContext context, {bool listen = true}) {
+  static PrismController of(BuildContext context, {bool listen = true}) {
     final scope =
         listen
-            ? context
-                .dependOnInheritedWidgetOfExactType<_InheritedElixirScope>()
-            : context.getInheritedWidgetOfExactType<_InheritedElixirScope>();
-    assert(scope != null, 'No ElixirScope found in context.');
+            ? context.dependOnInheritedWidgetOfExactType<_InheritedPrismScope>()
+            : context.getInheritedWidgetOfExactType<_InheritedPrismScope>();
+    assert(scope != null, 'No PrismScope found in context.');
     return scope!.controller;
   }
 
   @override
-  State<ElixirScope> createState() => _ElixirScopeState();
+  State<PrismScope> createState() => _PrismScopeState();
 }
 
-class _ElixirScopeState extends State<ElixirScope> {
+class _PrismScopeState extends State<PrismScope> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -31,15 +30,15 @@ class _ElixirScopeState extends State<ElixirScope> {
 
   @override
   Widget build(BuildContext context) =>
-      _InheritedElixirScope(controller: widget.controller, child: widget.child);
+      _InheritedPrismScope(controller: widget.controller, child: widget.child);
 }
 
-class _InheritedElixirScope extends InheritedWidget {
-  const _InheritedElixirScope({required this.controller, required super.child});
+class _InheritedPrismScope extends InheritedWidget {
+  const _InheritedPrismScope({required this.controller, required super.child});
 
-  final ElixirController controller;
+  final PrismController controller;
 
   @override
-  bool updateShouldNotify(covariant _InheritedElixirScope oldWidget) =>
+  bool updateShouldNotify(covariant _InheritedPrismScope oldWidget) =>
       !identical(controller, oldWidget.controller);
 }

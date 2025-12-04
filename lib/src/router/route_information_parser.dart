@@ -1,22 +1,22 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-import '../navigator/elixir_page.dart';
+import '../navigator/prism_page.dart';
 import '../navigator/types.dart';
 import 'path_codec.dart';
 
-class ElixirRouteInformationParser
-    extends RouteInformationParser<List<ElixirPage>> {
-  const ElixirRouteInformationParser({
+class PrismRouteInformationParser
+    extends RouteInformationParser<List<PrismPage>> {
+  const PrismRouteInformationParser({
     required this.routeBuilders,
     required this.initialPages,
   });
 
-  final Map<String, ElixirRouteDefinition> routeBuilders;
-  final List<ElixirPage> initialPages;
+  final Map<String, PrismRouteDefinition> routeBuilders;
+  final List<PrismPage> initialPages;
 
   @override
-  Future<List<ElixirPage>> parseRouteInformation(
+  Future<List<PrismPage>> parseRouteInformation(
     RouteInformation routeInformation,
   ) async {
     var uri = routeInformation.uri;
@@ -50,7 +50,7 @@ class ElixirRouteInformationParser
       return initialPages;
     }
 
-    final pages = <ElixirPage>[];
+    final pages = <PrismPage>[];
     for (final segment in encodedSegments) {
       final definition = routeBuilders[segment.name];
       if (definition == null) {
@@ -64,7 +64,7 @@ class ElixirRouteInformationParser
   }
 
   @override
-  RouteInformation? restoreRouteInformation(List<ElixirPage> configuration) {
+  RouteInformation? restoreRouteInformation(List<PrismPage> configuration) {
     final location = encodeLocation(configuration);
     final normalizedLocation =
         location.startsWith('/') ? location : '/$location';

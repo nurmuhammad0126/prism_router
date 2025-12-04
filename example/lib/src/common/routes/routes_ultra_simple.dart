@@ -1,5 +1,5 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import '../../feature/details/details_screen.dart';
 import '../../feature/home/home_screen.dart';
@@ -15,7 +15,7 @@ final pages = [
 ];
 
 @immutable
-sealed class AppPage extends ElixirPage {
+sealed class AppPage extends PrismPage {
   const AppPage({
     required super.name,
     required super.child,
@@ -39,7 +39,7 @@ final class HomePage extends AppPage {
   const HomePage() : super(child: const HomeScreen(), name: 'home');
 
   @override
-  ElixirPage pageBuilder(Map<String, Object?> _) => const HomePage();
+  PrismPage pageBuilder(Map<String, Object?> _) => const HomePage();
 }
 
 final class SettingsPage extends AppPage {
@@ -54,7 +54,7 @@ final class SettingsPage extends AppPage {
   final String data;
 
   @override
-  ElixirPage pageBuilder(Map<String, Object?> arguments) {
+  PrismPage pageBuilder(Map<String, Object?> arguments) {
     // Pattern matching - type-safe, no cast needed, IDE autocomplete works!
     if (arguments case {'data': String data}) {
       return SettingsPage(data: data);
@@ -72,7 +72,7 @@ final class ProfilePage extends AppPage {
   const ProfilePage() : super(name: 'profile', child: const ProfileScreen());
 
   @override
-  ElixirPage pageBuilder(Map<String, Object?> _) => const ProfilePage();
+  PrismPage pageBuilder(Map<String, Object?> _) => const ProfilePage();
 }
 
 final class DetailsPage extends AppPage {
@@ -88,7 +88,7 @@ final class DetailsPage extends AppPage {
   final String note;
 
   @override
-  ElixirPage pageBuilder(Map<String, Object?> arguments) {
+  PrismPage pageBuilder(Map<String, Object?> arguments) {
     // Pattern matching - type-safe, no cast needed, IDE autocomplete works!
     if (arguments case {'userId': String userId, 'note': String note}) {
       return DetailsPage(userId: userId, note: note);

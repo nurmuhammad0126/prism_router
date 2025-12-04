@@ -1,14 +1,14 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import 'routes_ultra_simple.dart';
 
 mixin RouteStateMixin<T extends StatefulWidget> on State<T> {
-  late ElixirNavigationState initialPages;
+  late PrismNavigationState initialPages;
 
-  late ElixirGuard guards;
+  late PrismGuard guards;
 
-  late List<ElixirPage> appPages;
+  late List<PrismPage> appPages;
 
   @override
   void initState() {

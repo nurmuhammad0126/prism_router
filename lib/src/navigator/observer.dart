@@ -4,32 +4,32 @@ import 'package:flutter/foundation.dart';
 
 import 'types.dart';
 
-/// Elixir state observer
-abstract interface class ElixirStateObserver
-    implements ValueListenable<ElixirNavigationState> {
+/// Prism state observer
+abstract interface class PrismStateObserver
+    implements ValueListenable<PrismNavigationState> {
   /// Max history length.
   static const int maxHistoryLength = 10000;
 
   /// History.
-  List<ElixirHistoryEntry> get history;
+  List<PrismHistoryEntry> get history;
 
   /// Set history
-  void setHistory(Iterable<ElixirHistoryEntry> history);
+  void setHistory(Iterable<PrismHistoryEntry> history);
 }
 
 @immutable
-final class ElixirHistoryEntry implements Comparable<ElixirHistoryEntry> {
-  ElixirHistoryEntry({required this.state, DateTime? timestamp})
+final class PrismHistoryEntry implements Comparable<PrismHistoryEntry> {
+  PrismHistoryEntry({required this.state, DateTime? timestamp})
     : timestamp = timestamp ?? DateTime.now();
 
   /// Navigation state
-  final ElixirNavigationState state;
+  final PrismNavigationState state;
 
   /// Timestamp of the entry
   final DateTime timestamp;
 
   @override
-  int compareTo(covariant ElixirHistoryEntry other) =>
+  int compareTo(covariant PrismHistoryEntry other) =>
       timestamp.compareTo(other.timestamp);
 
   @override
@@ -38,39 +38,39 @@ final class ElixirHistoryEntry implements Comparable<ElixirHistoryEntry> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ElixirHistoryEntry &&
+      other is PrismHistoryEntry &&
           state == other.state &&
           timestamp == other.timestamp;
 }
 
-/// Elixir state observer implementation
-final class ElixirObserver$NavigatorImpl
+/// Prism state observer implementation
+final class PrismObserver$NavigatorImpl
     with ChangeNotifier
-    implements ElixirStateObserver {
-  ElixirObserver$NavigatorImpl(
-    ElixirNavigationState initialState, [
-    List<ElixirHistoryEntry>? history,
+    implements PrismStateObserver {
+  PrismObserver$NavigatorImpl(
+    PrismNavigationState initialState, [
+    List<PrismHistoryEntry>? history,
   ]) : _value = initialState,
        _history = history?.toSet().toList() ?? [] {
     // Add the initial state to the history.
     if (_history.isEmpty || _history.last.state != initialState) {
       _history.add(
-        ElixirHistoryEntry(state: initialState, timestamp: DateTime.now()),
+        PrismHistoryEntry(state: initialState, timestamp: DateTime.now()),
       );
     }
     _history.sort();
   }
 
-  ElixirNavigationState _value;
+  PrismNavigationState _value;
 
-  final List<ElixirHistoryEntry> _history;
-
-  @override
-  List<ElixirHistoryEntry> get history =>
-      UnmodifiableListView<ElixirHistoryEntry>(_history);
+  final List<PrismHistoryEntry> _history;
 
   @override
-  void setHistory(Iterable<ElixirHistoryEntry> history) {
+  List<PrismHistoryEntry> get history =>
+      UnmodifiableListView<PrismHistoryEntry>(_history);
+
+  @override
+  void setHistory(Iterable<PrismHistoryEntry> history) {
     _history
       ..clear()
       ..addAll(history)
@@ -78,22 +78,22 @@ final class ElixirObserver$NavigatorImpl
   }
 
   @override
-  ElixirNavigationState get value => _value;
+  PrismNavigationState get value => _value;
 
   bool changeState(
-    ElixirNavigationState Function(ElixirNavigationState state) fn,
+    PrismNavigationState Function(PrismNavigationState state) fn,
   ) {
     final prev = _value;
     final next = fn(prev);
     if (identical(next, prev)) return false;
     _value = next;
 
-    late final historyEntry = ElixirHistoryEntry(
+    late final historyEntry = PrismHistoryEntry(
       state: next,
       timestamp: DateTime.now(),
     );
     _history.add(historyEntry);
-    if (_history.length > ElixirStateObserver.maxHistoryLength)
+    if (_history.length > PrismStateObserver.maxHistoryLength)
       _history.removeAt(0);
 
     notifyListeners();

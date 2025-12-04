@@ -1,11 +1,11 @@
 import 'dart:developer';
 
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import '../../common/routes/routes.dart';
 
-ElixirStateObserver? elixirStateObserver;
+PrismStateObserver? prismStateObserver;
 
 /// {@template home_screen}
 /// HomeScreen widget.
@@ -21,25 +21,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   void updateUI() {
     setState(() {});
-    log(elixirStateObserver?.value.join() ?? '');
+    log(prismStateObserver?.value.join() ?? '');
   }
 
   @override
   void initState() {
     super.initState();
-    elixirStateObserver = context.elixir.observer;
-    elixirStateObserver?.addListener(updateUI);
+    prismStateObserver = context.prism.observer;
+    prismStateObserver?.addListener(updateUI);
   }
 
   @override
   void dispose() {
-    elixirStateObserver?.removeListener(updateUI);
+    prismStateObserver?.removeListener(updateUI);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final stack = context.elixir.state;
+    final stack = context.prism.state;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reset to home',
-            onPressed: () => context.elixir.resetTo([const HomePage()]),
+            onPressed: () => context.prism.resetTo([const HomePage()]),
           ),
         ],
       ),
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Open settings',
               subtitle: 'Pushes a custom routed page with transition override',
               onTap:
-                  () => context.elixir.push(
+                  () => context.prism.push(
                     SettingsPage(
                       data: 'Updated @ ${DateTime.now().toIso8601String()}',
                     ),
@@ -83,14 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icons.person,
               title: 'Push profile',
               subtitle: 'Simple page that can open details',
-              onTap: () => context.elixir.push(const ProfilePage()),
+              onTap: () => context.prism.push(const ProfilePage()),
             ),
             _NavigationTile(
               icon: Icons.description,
               title: 'Push details',
               subtitle: 'Pass data arguments & show tag-based back handling',
               onTap:
-                  () => context.elixir.push(
+                  () => context.prism.push(
                     DetailsPage(
                       userId: '42',
                       note: 'Opened directly from home',

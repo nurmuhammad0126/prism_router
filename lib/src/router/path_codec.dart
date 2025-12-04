@@ -1,4 +1,4 @@
-import '../navigator/elixir_page.dart';
+import '../navigator/prism_page.dart';
 
 class EncodedRouteSegment {
   EncodedRouteSegment(this.name, this.arguments);
@@ -7,7 +7,7 @@ class EncodedRouteSegment {
   final Map<String, Object?> arguments;
 }
 
-String encodeLocation(List<ElixirPage> pages) {
+String encodeLocation(List<PrismPage> pages) {
   if (pages.isEmpty) return '/';
   // Only encode page names in the URL. Arguments are *not* serialized into the
   // location to keep paths clean:

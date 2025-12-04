@@ -1,15 +1,15 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 /// {@template custom_material_route}
 /// CustomMaterialRoute widget.
 /// {@endtemplate}
 class CustomMaterialRoute extends PageRoute<void> {
   /// {@macro custom_material_route}
-  CustomMaterialRoute({required ElixirPage page}) : super(settings: page);
+  CustomMaterialRoute({required PrismPage page}) : super(settings: page);
 
   /// {@macro custom_material_route}
-  ElixirPage get page => settings as ElixirPage;
+  PrismPage get page => settings as PrismPage;
 
   @override
   Widget buildPage(

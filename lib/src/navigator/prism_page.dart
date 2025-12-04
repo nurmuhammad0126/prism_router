@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'types.dart';
 
 @immutable
-abstract base class ElixirPage extends Page<void> {
-  const ElixirPage({
+abstract base class PrismPage extends Page<void> {
+  const PrismPage({
     required String super.name,
     required this.child,
     required Map<String, Object?>? super.arguments,
@@ -67,14 +67,14 @@ abstract base class ElixirPage extends Page<void> {
   /// Example with Map (recommended - type-safe and backward compatible):
   /// ```dart
   /// @override
-  /// ElixirPage pageBuilder(Map<String, Object?> arguments) =>
+  /// PrismPage pageBuilder(Map<String, Object?> arguments) =>
   ///     SettingsPage(data: arguments['data'] as String? ?? '');
   /// ```
   ///
   /// Example with Record pattern matching (type-safe):
   /// ```dart
   /// @override
-  /// ElixirPage pageBuilder(Map<String, Object?> arguments) {
+  /// PrismPage pageBuilder(Map<String, Object?> arguments) {
   ///   // Pattern matching - type-safe, no cast needed!
   ///   if (arguments case {'data': String data}) {
   ///     return SettingsPage(data: data);
@@ -82,7 +82,7 @@ abstract base class ElixirPage extends Page<void> {
   ///   return SettingsPage(data: '');
   /// }
   /// ```
-  ElixirPage pageBuilder(Map<String, Object?> arguments) =>
+  PrismPage pageBuilder(Map<String, Object?> arguments) =>
       _createDefaultInstance(arguments);
   // Default: try to create page with no arguments
   // This works for pages without required parameters
@@ -92,7 +92,7 @@ abstract base class ElixirPage extends Page<void> {
   ///
   /// Default implementation tries to create page with no arguments.
   /// Override this if the default constructor requires parameters.
-  ElixirPage _createDefaultInstance(Map<String, Object?> arguments) {
+  PrismPage _createDefaultInstance(Map<String, Object?> arguments) {
     // Try to use arguments if they match the page's expected arguments
     // For pages without required parameters, this will work
     // For pages with required parameters, subclasses must override pageBuilder
@@ -111,7 +111,7 @@ abstract base class ElixirPage extends Page<void> {
 
   /// Tries to create a default instance.
   /// Override in subclasses if default constructor works.
-  ElixirPage _tryCreateDefault() {
+  PrismPage _tryCreateDefault() {
     throw UnimplementedError(
       'pageBuilder must be overridden. '
       'Override pageBuilder() in $runtimeType',
@@ -122,8 +122,8 @@ abstract base class ElixirPage extends Page<void> {
   ///
   /// This can be used to automatically generate routes from pages.
   /// Override if you need custom route behavior.
-  ElixirRouteDefinition get routeDefinition =>
-      ElixirRouteDefinition(name: name, builder: pageBuilder);
+  PrismRouteDefinition get routeDefinition =>
+      PrismRouteDefinition(name: name, builder: pageBuilder);
 
   @override
   Route<void> createRoute(BuildContext context) =>
@@ -153,5 +153,5 @@ abstract base class ElixirPage extends Page<void> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ElixirPage && key == other.key && name == other.name;
+      other is PrismPage && key == other.key && name == other.name;
 }

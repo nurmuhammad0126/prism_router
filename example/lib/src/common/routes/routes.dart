@@ -1,5 +1,5 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import '../../feature/details/details_screen.dart';
 import '../../feature/home/home_screen.dart';
@@ -9,7 +9,7 @@ import 'custom_route_transitions.dart';
 
 /// Type definition for the page.
 @immutable
-sealed class AppPage extends ElixirPage {
+sealed class AppPage extends PrismPage {
   const AppPage({
     required super.name,
     required super.child,
@@ -36,7 +36,7 @@ final class HomePage extends AppPage {
   @override
   Set<String> get tags => {'home'};
 
-  static const route = ElixirRouteDefinition(
+  static const route = PrismRouteDefinition(
     name: 'home',
     builder: HomePage.fromArguments,
   );
@@ -62,7 +62,7 @@ final class SettingsPage extends AppPage {
   @override
   Set<String> get tags => {'settings'};
 
-  static const route = ElixirRouteDefinition(
+  static const route = PrismRouteDefinition(
     name: 'settings',
     builder: SettingsPage.fromArguments,
   );
@@ -77,7 +77,7 @@ final class ProfilePage extends AppPage {
   @override
   Set<String> get tags => {'profile'};
 
-  static const route = ElixirRouteDefinition(
+  static const route = PrismRouteDefinition(
     name: 'profile',
     builder: ProfilePage.fromArguments,
   );
@@ -103,7 +103,7 @@ final class DetailsPage extends AppPage {
   @override
   Set<String> get tags => {'details'};
 
-  static const route = ElixirRouteDefinition(
+  static const route = PrismRouteDefinition(
     name: 'details',
     builder: DetailsPage.fromArguments,
   );

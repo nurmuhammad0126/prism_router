@@ -1,10 +1,10 @@
-# Elixir
+# Prism Router
 
-A declarative navigation package for Flutter that provides a clean, type-safe approach to managing navigation state using the Navigator 2.0 API.
+Prism Router is a declarative navigation package for Flutter that provides a clean, type-safe approach to managing navigation state using the Navigator 2.0 API.
 
 ## Overview
 
-Elixir is a lightweight navigation library that simplifies Flutter's Navigator 2.0 implementation by providing:
+Prism Router is a lightweight navigation library that simplifies Flutter's Navigator 2.0 implementation by providing:
 
 - **Declarative Navigation**: Manage navigation state as a list of pages
 - **Type-Safe Pages**: Define custom page types with compile-time safety
@@ -27,13 +27,12 @@ Elixir is a lightweight navigation library that simplifies Flutter's Navigator 2
 
 ## Getting started
 
-Add Elixir to your `pubspec.yaml`:
+Add Prism Router to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  elixir:
-    git:
-      url: https://github.com/Miracle-Blue/elixir.git
+  prism_router:
+    ^0.2.0
 ```
 
 Then run:
@@ -46,14 +45,14 @@ flutter pub get
 
 ### 1. Define Your Pages
 
-Create custom page types by extending `ElixirPage`:
+Create custom page types by extending `PrismPage`:
 
 ```dart
-import 'package:elixir/elixir.dart';
+import 'package:prism_router/prism_router.dart';
 import 'package:flutter/material.dart';
 
 @immutable
-sealed class AppPage extends ElixirPage {
+sealed class AppPage extends PrismPage {
   const AppPage({
     required super.name,
     required super.child,
@@ -86,10 +85,10 @@ final class SettingsPage extends AppPage {
 
 ### 2. Set Up Navigation
 
-Use the `Elixir` widget in your app:
+Use the `PrismRouter` in your app:
 
 ```dart
-import 'package:elixir/elixir.dart';
+import 'package:prism_router/prism_router.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatefulWidget {
@@ -105,13 +104,13 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _router = Elixir.router(
+    _router = PrismRouter.router(
       routes: const [
-        ElixirRouteDefinition(
+        PrismRouteDefinition(
           name: 'home',
           builder: (_) => HomePage(),
         ),
-        ElixirRouteDefinition(
+        PrismRouteDefinition(
           name: 'settings',
           builder: (args) => SettingsPage(
             data: args['data'] as String? ?? '',
@@ -127,7 +126,7 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) => MaterialApp.router(
-        title: 'Elixir Example',
+        title: 'Prism Router Example',
         routerConfig: _router,
       );
 }
@@ -138,7 +137,7 @@ class _AppState extends State<App> {
 Use the context extension to navigate:
 
 ```dart
-import 'package:elixir/elixir.dart';
+import 'package:prism_router/prism_router.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -153,7 +152,7 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.settings),
               onPressed: () {
                 // Navigate to settings page
-                context.elixir.push(SettingsPage(data: 'Hello from home'));
+                context.prism.push(SettingsPage(data: 'Hello from home'));
               },
             ),
           ],
@@ -175,7 +174,7 @@ class SettingsScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
               // Navigate back by removing pages with 'settings' tag
-              context.elixir.change(
+              context.prism.change(
                 (state) => state.where((e) => !e.tags.contains('settings')).toList(),
               );
             },
@@ -188,30 +187,30 @@ class SettingsScreen extends StatelessWidget {
 
 ## Core Concepts
 
-### ElixirPage
+### PrismPage
 
 An abstract base class for defining navigation pages. Each page must implement:
 - `child`: The widget to display
 - `name`: A unique name for the page
 - `tags`: A set of tags for page identification
 
-### ElixirNavigationState
+### PrismNavigationState
 
-A type alias for `List<ElixirPage>` representing the current navigation stack.
+A type alias for `List<PrismPage>` representing the current navigation stack.
 
 ### Navigation Methods
 
-- `push(ElixirPage page)`: Add a page to the navigation stack
+– `push(PrismPage page)`: Add a page to the navigation stack
 - `pop()`: Remove the last page from the stack
 - `change(fn)`: Apply custom transformations to the navigation state
-- `reset(ElixirPage page)`: Reset to initial pages
+– `reset(PrismPage page)`: Reset to initial pages
 
 ### Guards
 
 Guards are functions that intercept and modify navigation state changes:
 
 ```dart
-ElixirGuard guards = [
+PrismGuard guards = [
   // Example: Redirect to login if not authenticated
   (context, state) {
     final isAuthenticated = checkAuth();
@@ -237,7 +236,7 @@ class _MyScreenState extends State<MyScreen> {
   @override
   void initState() {
     super.initState();
-    final observer = context.elixir.observer;
+    final observer = context.prism.observer;
     observer.addListener(() {
       print('Navigation changed: ${observer.value}');
     });
@@ -294,20 +293,20 @@ Check out the [example](example/) directory for a complete working application d
 
 ### Flutter web support
 
-Elixir keeps the Navigator state and the browser URL in sync, so forward/back buttons and manual refreshes behave as expected when the app runs on the web (including Telegram WebApps). A full page reload still boots the app from its initial pages (as Flutter rebuilds everything), but during the session the browser controls remain in lock-step with the navigation stack. You don't need to switch APIs or use `MaterialApp.router`—continue using `Elixir` exactly as before.
+Prism Router keeps the Navigator state and the browser URL in sync, so forward/back buttons and manual refreshes behave as expected when the app runs on the web (including Telegram WebApps). A full page reload still boots the app from its initial pages (as Flutter rebuilds everything), but during the session the browser controls remain in lock-step with the navigation stack.
 
-Internally this is powered by `SystemNavigator.routeInformationUpdated` and a snapshot cache, so the browser's multi-entry history is always aware of your current `ElixirNavigationState`. No additional configuration or route-parser plumbing is required.
+Internally this is powered by `SystemNavigator.routeInformationUpdated` and a snapshot cache, so the browser's multi-entry history is always aware of your current `PrismNavigationState`. No additional configuration or route-parser plumbing is required.
 
-If you want a hard refresh (`Cmd+R`, F5, etc.) to restore the previous stack, provide the optional `routes` parameter when constructing `Elixir`. Each `ElixirRouteDefinition` teaches Elixir how to rebuild a page from its `name` and `arguments`. Once the routes are registered, Elixir encodes the stack into the browser URL and automatically rehydrates it on reload—no manual parsers required.
+If you want a hard refresh (`Cmd+R`, F5, etc.) to restore the previous stack, provide the optional `routes` parameter when constructing `PrismRouter`. Each `PrismRouteDefinition` teaches Prism Router how to rebuild a page from its `name` and `arguments`. Once the routes are registered, Prism Router encodes the stack into the browser URL and automatically rehydrates it on reload—no manual parsers required.
 
 ```dart
-final router = Elixir.router(
+final router = PrismRouter.router(
   initialStack: [const HomePage()],
   guards: guards,
   routes: const [
-    ElixirRouteDefinition(name: 'home', builder: (_) => HomePage()),
-    ElixirRouteDefinition(name: 'profile', builder: (_) => ProfilePage()),
-    ElixirRouteDefinition(
+    PrismRouteDefinition(name: 'home', builder: (_) => HomePage()),
+    PrismRouteDefinition(name: 'profile', builder: (_) => ProfilePage()),
+    PrismRouteDefinition(
       name: 'details',
       builder: (args) => DetailsPage(
         userId: args['userId'] as String? ?? '',
@@ -320,7 +319,7 @@ final router = Elixir.router(
 MaterialApp.router(routerConfig: router);
 ```
 
-> **Heads up:** pass any data you’ll need to rebuild a page through the `arguments` parameter of `ElixirPage`. Those arguments are what get serialized between refreshes.
+> **Heads up:** pass any data you’ll need to rebuild a page through the `arguments` parameter of `PrismPage`. Those arguments are what get serialized between refreshes.
 
 ### Contributing
 
@@ -328,7 +327,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Issues
 
-File issues and feature requests at the [GitHub issue tracker](https://github.com/Miracle-Blue/elixir/issues).
+File issues and feature requests at the [GitHub issue tracker](https://github.com/nurmuhammad0126/prism_router/issues).
 
 ### License
 

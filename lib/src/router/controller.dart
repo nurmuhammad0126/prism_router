@@ -3,29 +3,29 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-import '../navigator/elixir_page.dart';
 import '../navigator/observer.dart';
+import '../navigator/prism_page.dart';
 import '../navigator/types.dart';
 
-class ElixirController extends ChangeNotifier {
-  ElixirController({
-    required List<ElixirPage> initialPages,
-    required ElixirGuard guards,
+class PrismController extends ChangeNotifier {
+  PrismController({
+    required List<PrismPage> initialPages,
+    required PrismGuard guards,
   }) : _guards = guards,
        _state = UnmodifiableListView(initialPages),
        _initialPages = UnmodifiableListView(initialPages) {
-    _observer = ElixirObserver$NavigatorImpl(_state);
+    _observer = PrismObserver$NavigatorImpl(_state);
   }
 
-  final ElixirGuard _guards;
-  final UnmodifiableListView<ElixirPage> _initialPages;
-  late UnmodifiableListView<ElixirPage> _state;
-  late final ElixirObserver$NavigatorImpl _observer;
+  final PrismGuard _guards;
+  final UnmodifiableListView<PrismPage> _initialPages;
+  late UnmodifiableListView<PrismPage> _state;
+  late final PrismObserver$NavigatorImpl _observer;
   BuildContext? _guardContext;
 
-  UnmodifiableListView<ElixirPage> get state => _state;
+  UnmodifiableListView<PrismPage> get state => _state;
 
-  ElixirStateObserver get observer => _observer;
+  PrismStateObserver get observer => _observer;
 
   /// Returns true if we're at the initial state (same as initial pages).
   bool get isAtInitialState {
@@ -53,7 +53,7 @@ class ElixirController extends ChangeNotifier {
   /// Pushes a new page onto the navigation stack.
   ///
   /// Prevents pushing the same page if it's already at the top of the stack.
-  void push(ElixirPage page) {
+  void push(PrismPage page) {
     if (_state.isNotEmpty && _state.last.name == page.name) {
       // Don't push the same page twice
       return;
@@ -64,7 +64,7 @@ class ElixirController extends ChangeNotifier {
   /// Replaces the top page with a new page (equivalent to pushReplacement).
   ///
   /// If the stack is empty, pushes the page instead.
-  void pushReplacement(ElixirPage page) {
+  void pushReplacement(PrismPage page) {
     if (_state.isEmpty) {
       push(page);
       return;
@@ -79,11 +79,8 @@ class ElixirController extends ChangeNotifier {
   /// Pushes a new page and removes all previous pages until the predicate is true.
   ///
   /// Equivalent to `pushAndRemoveUntil` in Flutter Navigator.
-  void pushAndRemoveUntil(
-    ElixirPage page,
-    bool Function(ElixirPage) predicate,
-  ) {
-    final newStack = <ElixirPage>[];
+  void pushAndRemoveUntil(PrismPage page, bool Function(PrismPage) predicate) {
+    final newStack = <PrismPage>[];
     // Keep pages until predicate is true
     for (final existingPage in _state.reversed) {
       if (predicate(existingPage)) {
@@ -99,48 +96,48 @@ class ElixirController extends ChangeNotifier {
   /// Resets the stack to the given pages (equivalent to pushAndRemoveUntil with always false).
   ///
   /// Removes all previous pages and sets the stack to the given pages.
-  void pushAndRemoveAll(ElixirPage page) {
+  void pushAndRemoveAll(PrismPage page) {
     resetTo([page]);
   }
 
   /// Resets the stack to the given pages.
   ///
   /// This is a lower-level method. Prefer [pushAndRemoveAll] or [pushAndRemoveUntil] for common use cases.
-  void resetTo(List<ElixirPage> pages) {
+  void resetTo(List<PrismPage> pages) {
     if (pages.isEmpty) return;
-    _setState(_applyGuards(List<ElixirPage>.from(pages)));
+    _setState(_applyGuards(List<PrismPage>.from(pages)));
   }
 
   /// Resets the stack to the given pages (alias for resetTo).
   @Deprecated('Use resetTo instead')
-  void reset(List<ElixirPage> pages) => resetTo(pages);
+  void reset(List<PrismPage> pages) => resetTo(pages);
 
   /// Replaces the top page with a new page (alias for pushReplacement).
   @Deprecated('Use pushReplacement instead')
-  void replaceTop(ElixirPage page) => pushReplacement(page);
+  void replaceTop(PrismPage page) => pushReplacement(page);
 
-  void change(List<ElixirPage> Function(List<ElixirPage> current) transform) {
+  void change(List<PrismPage> Function(List<PrismPage> current) transform) {
     final next = transform(_state.toList());
     if (next.isEmpty) return;
-    final guarded = _applyGuards(List<ElixirPage>.from(next));
+    final guarded = _applyGuards(List<PrismPage>.from(next));
     _setState(guarded);
   }
 
-  void setFromRouter(List<ElixirPage> pages) =>
-      _setState(List<ElixirPage>.from(pages), force: true);
+  void setFromRouter(List<PrismPage> pages) =>
+      _setState(List<PrismPage>.from(pages), force: true);
 
-  List<ElixirPage> _applyGuards(List<ElixirPage> next) {
+  List<PrismPage> _applyGuards(List<PrismPage> next) {
     if (next.isEmpty) return next;
     final ctx = _guardContext;
     if (ctx == null || _guards.isEmpty) return next;
-    return _guards.fold<List<ElixirPage>>(next, (state, guard) {
-      final guarded = guard(ctx, List<ElixirPage>.from(state));
+    return _guards.fold<List<PrismPage>>(next, (state, guard) {
+      final guarded = guard(ctx, List<PrismPage>.from(state));
       return guarded.isEmpty ? state : guarded;
     });
   }
 
-  void _setState(List<ElixirPage> next, {bool force = false}) {
-    final immutable = UnmodifiableListView<ElixirPage>(next);
+  void _setState(List<PrismPage> next, {bool force = false}) {
+    final immutable = UnmodifiableListView<PrismPage>(next);
     if (!force && listEquals(immutable, _state)) return;
     _state = immutable;
     _observer.changeState((_) => _state);

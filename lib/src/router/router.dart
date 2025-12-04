@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-import '../navigator/elixir_page.dart';
+import '../navigator/prism_page.dart';
 import '../navigator/types.dart';
 import 'back_button_dispatcher.dart';
 import 'controller.dart';
@@ -9,21 +9,21 @@ import 'path_codec.dart';
 import 'route_information_parser.dart';
 import 'router_delegate.dart';
 
-class Elixir {
-  const Elixir._();
+class PrismRouter {
+  const PrismRouter._();
 
   static RouterConfig<Object> router({
-    required List<ElixirPage> initialStack,
-    List<ElixirRouteDefinition>? routes,
-    List<ElixirPage>? pages,
-    ElixirGuard guards = const [],
+    required List<PrismPage> initialStack,
+    List<PrismRouteDefinition>? routes,
+    List<PrismPage>? pages,
+    PrismGuard guards = const [],
     List<NavigatorObserver> observers = const [],
     TransitionDelegate<Object> transitionDelegate =
         const DefaultTransitionDelegate<Object>(),
     String? restorationScopeId,
   }) {
     assert(initialStack.isNotEmpty, 'initialStack cannot be empty');
-    final controller = ElixirController(
+    final controller = PrismController(
       initialPages: initialStack,
       guards: guards,
     );
@@ -36,13 +36,13 @@ class Elixir {
               for (final page in (pages ?? initialStack))
                 page.name: page.routeDefinition,
             };
-    final delegate = ElixirRouterDelegate(
+    final delegate = PrismRouterDelegate(
       controller: controller,
       observers: observers,
       transitionDelegate: transitionDelegate,
       restorationScopeId: restorationScopeId,
     );
-    final parser = ElixirRouteInformationParser(
+    final parser = PrismRouteInformationParser(
       routeBuilders: routeMap,
       initialPages: initialStack,
     );
@@ -61,7 +61,7 @@ class Elixir {
       routerDelegate: delegate,
       routeInformationParser: parser,
       routeInformationProvider: provider,
-      backButtonDispatcher: ElixirBackButtonDispatcher(controller),
+      backButtonDispatcher: PrismBackButtonDispatcher(controller),
     );
   }
 }

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'controller.dart';
 
 /// Custom back button dispatcher that properly handles initial state.
-class ElixirBackButtonDispatcher extends RootBackButtonDispatcher {
-  ElixirBackButtonDispatcher(this.controller);
+class PrismBackButtonDispatcher extends RootBackButtonDispatcher {
+  PrismBackButtonDispatcher(this.controller);
 
-  final ElixirController controller;
+  final PrismController controller;
 
   @override
   Future<bool> didPopRoute() async {

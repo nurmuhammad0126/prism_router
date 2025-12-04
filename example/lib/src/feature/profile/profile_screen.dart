@@ -1,5 +1,5 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import '../../common/routes/routes.dart';
 
@@ -16,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
       title: const Text('Profile'),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: context.elixir.pop,
+        onPressed: context.prism.pop,
       ),
     ),
     body: Padding(
@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
             icon: const Icon(Icons.description),
             label: const Text('Open details for user #007'),
             onPressed:
-                () => context.elixir.push(
+                () => context.prism.push(
                   DetailsPage(userId: '007', note: 'Opened from profile'),
                 ),
           ),

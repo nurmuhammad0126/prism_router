@@ -1,5 +1,5 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 /// {@template settings_screen}
 /// SettingsScreen widget.
@@ -16,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.elixir.pop(),
+        onPressed: () => context.prism.pop(),
       ),
       title: const Text('Settings'),
     ),

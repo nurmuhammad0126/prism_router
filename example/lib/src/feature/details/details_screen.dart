@@ -1,5 +1,5 @@
-import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
+import 'package:prism_router/prism_router.dart';
 
 import '../../common/routes/routes.dart';
 
@@ -19,13 +19,13 @@ class DetailsScreen extends StatelessWidget {
       title: const Text('Details'),
       leading: IconButton(
         icon: const Icon(Icons.close),
-        onPressed: context.elixir.pop,
+        onPressed: context.prism.pop,
       ),
       actions: [
         IconButton(
           tooltip: 'Back to home',
           icon: const Icon(Icons.home),
-          onPressed: () => context.elixir.resetTo([const HomePage()]),
+          onPressed: () => context.prism.resetTo([const HomePage()]),
         ),
       ],
     ),

@@ -16,11 +16,7 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed:
-            () => context.elixir.change(
-              (state) =>
-                  state.where((e) => !e.tags.contains('settings')).toList(),
-            ),
+        onPressed: () => context.elixir.pop(),
       ),
       title: const Text('Settings'),
     ),

@@ -100,24 +100,35 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  late final ValueNotifier<ElixirNavigationState> _controller;
+  late final RouterConfig<Object?> _router;
 
   @override
   void initState() {
     super.initState();
-    _controller = ValueNotifier([const HomePage()]);
+    _router = Elixir.router(
+      routes: const [
+        ElixirRouteDefinition(
+          name: 'home',
+          builder: (_) => HomePage(),
+        ),
+        ElixirRouteDefinition(
+          name: 'settings',
+          builder: (args) => SettingsPage(
+            data: args['data'] as String? ?? '',
+          ),
+        ),
+      ],
+      initialStack: [const HomePage()],
+      guards: [
+        (context, state) => state.isEmpty ? [const HomePage()] : state,
+      ],
+    );
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => MaterialApp.router(
         title: 'Elixir Example',
-        builder: (context, _) => Elixir.controlled(
-          controller: _controller,
-          guards: [
-            // Ensure at least one page is always present
-            (context, state) => state.length > 1 ? state : [const HomePage()],
-          ],
-        ),
+        routerConfig: _router,
       );
 }
 ```
@@ -287,21 +298,15 @@ Elixir keeps the Navigator state and the browser URL in sync, so forward/back bu
 
 Internally this is powered by `SystemNavigator.routeInformationUpdated` and a snapshot cache, so the browser's multi-entry history is always aware of your current `ElixirNavigationState`. No additional configuration or route-parser plumbing is required.
 
-If you want a hard refresh (`Cmd+R`, F5, etc.) to restore the previous stack, provide the optional `routes` parameter when constructing `Elixir`. Each `ElixirRouteDefinition` teaches Elixir how to rebuild a page from its `name` and `arguments`. Once the routes are registered, Elixir automatically persists the stack to `sessionStorage` and rehydrates it on reload—no manual parsers required.
+If you want a hard refresh (`Cmd+R`, F5, etc.) to restore the previous stack, provide the optional `routes` parameter when constructing `Elixir`. Each `ElixirRouteDefinition` teaches Elixir how to rebuild a page from its `name` and `arguments`. Once the routes are registered, Elixir encodes the stack into the browser URL and automatically rehydrates it on reload—no manual parsers required.
 
 ```dart
-Elixir.controlled(
-  controller: ValueNotifier(initialPages),
+final router = Elixir.router(
+  initialStack: [const HomePage()],
   guards: guards,
   routes: const [
-    ElixirRouteDefinition(
-      name: 'home',
-      builder: (_) => HomePage(),
-    ),
-    ElixirRouteDefinition(
-      name: 'profile',
-      builder: (_) => ProfilePage(),
-    ),
+    ElixirRouteDefinition(name: 'home', builder: (_) => HomePage()),
+    ElixirRouteDefinition(name: 'profile', builder: (_) => ProfilePage()),
     ElixirRouteDefinition(
       name: 'details',
       builder: (args) => DetailsPage(
@@ -311,6 +316,8 @@ Elixir.controlled(
     ),
   ],
 );
+
+MaterialApp.router(routerConfig: router);
 ```
 
 > **Heads up:** pass any data you’ll need to rebuild a page through the `arguments` parameter of `ElixirPage`. Those arguments are what get serialized between refreshes.

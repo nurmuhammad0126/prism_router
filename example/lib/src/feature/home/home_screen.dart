@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reset to home',
-            onPressed: () => context.elixir.change((_) => [const HomePage()]),
+            onPressed: () => context.elixir.resetTo([const HomePage()]),
           ),
         ],
       ),

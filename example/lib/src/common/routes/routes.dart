@@ -31,8 +31,15 @@ sealed class AppPage extends ElixirPage {
 final class HomePage extends AppPage {
   const HomePage() : super(child: const HomeScreen(), name: 'home');
 
+  factory HomePage.fromArguments(Map<String, Object?> _) => const HomePage();
+
   @override
   Set<String> get tags => {'home'};
+
+  static const route = ElixirRouteDefinition(
+    name: 'home',
+    builder: HomePage.fromArguments,
+  );
 }
 
 final class SettingsPage extends AppPage {
@@ -43,6 +50,9 @@ final class SettingsPage extends AppPage {
         arguments: {'data': data},
       );
 
+  factory SettingsPage.fromArguments(Map<String, Object?> arguments) =>
+      SettingsPage(data: arguments['data'] as String? ?? '');
+
   final String data;
 
   @override
@@ -51,13 +61,26 @@ final class SettingsPage extends AppPage {
 
   @override
   Set<String> get tags => {'settings'};
+
+  static const route = ElixirRouteDefinition(
+    name: 'settings',
+    builder: SettingsPage.fromArguments,
+  );
 }
 
 final class ProfilePage extends AppPage {
   const ProfilePage() : super(name: 'profile', child: const ProfileScreen());
 
+  factory ProfilePage.fromArguments(Map<String, Object?> _) =>
+      const ProfilePage();
+
   @override
   Set<String> get tags => {'profile'};
+
+  static const route = ElixirRouteDefinition(
+    name: 'profile',
+    builder: ProfilePage.fromArguments,
+  );
 }
 
 final class DetailsPage extends AppPage {
@@ -68,9 +91,29 @@ final class DetailsPage extends AppPage {
         arguments: {'userId': userId, 'note': note},
       );
 
+  factory DetailsPage.fromArguments(Map<String, Object?> arguments) =>
+      DetailsPage(
+        userId: arguments['userId'] as String? ?? '',
+        note: arguments['note'] as String? ?? '',
+      );
+
   final String userId;
   final String note;
 
   @override
   Set<String> get tags => {'details'};
+
+  static const route = ElixirRouteDefinition(
+    name: 'details',
+    builder: DetailsPage.fromArguments,
+  );
+}
+
+abstract final class AppRoutes {
+  static const definitions = [
+    HomePage.route,
+    SettingsPage.route,
+    ProfilePage.route,
+    DetailsPage.route,
+  ];
 }

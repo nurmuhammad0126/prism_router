@@ -18,26 +18,6 @@ mixin RouteStateMixin<T extends StatefulWidget> on State<T> {
     guards = [
       (context, state) => state.length > 1 ? state : [const HomePage()],
     ];
-    routes = [
-      ElixirRouteDefinition(name: 'home', builder: (_) => const HomePage()),
-      ElixirRouteDefinition(
-        name: 'settings',
-        builder:
-            (arguments) =>
-                SettingsPage(data: arguments['data'] as String? ?? ''),
-      ),
-      ElixirRouteDefinition(
-        name: 'profile',
-        builder: (_) => const ProfilePage(),
-      ),
-      ElixirRouteDefinition(
-        name: 'details',
-        builder:
-            (arguments) => DetailsPage(
-              userId: arguments['userId'] as String? ?? '',
-              note: arguments['note'] as String? ?? '',
-            ),
-      ),
-    ];
+    routes = AppRoutes.definitions;
   }
 }

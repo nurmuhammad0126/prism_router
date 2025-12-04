@@ -29,7 +29,7 @@ List<EncodedRouteSegment> decodeUri(Uri uri) {
   //
   // In the latter case, [uri.pathSegments] is empty and the actual segments
   // live inside [uri.fragment].
-  List<String> segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+  var segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
 
   // If path is empty, check fragment (hash routing)
   if (segments.isEmpty && uri.fragment.isNotEmpty) {

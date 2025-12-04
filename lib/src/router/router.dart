@@ -13,8 +13,9 @@ class Elixir {
   const Elixir._();
 
   static RouterConfig<Object> router({
-    required List<ElixirRouteDefinition> routes,
     required List<ElixirPage> initialStack,
+    List<ElixirRouteDefinition>? routes,
+    List<ElixirPage>? pages,
     ElixirGuard guards = const [],
     List<NavigatorObserver> observers = const [],
     TransitionDelegate<Object> transitionDelegate =
@@ -26,7 +27,15 @@ class Elixir {
       initialPages: initialStack,
       guards: guards,
     );
-    final routeMap = {for (final route in routes) route.name: route};
+    // Auto-generate routes from pages or initialStack if not provided
+    final routeMap =
+        routes != null
+            ? {for (final route in routes) route.name: route}
+            : {
+              // Use pages list if provided, otherwise use initialStack
+              for (final page in (pages ?? initialStack))
+                page.name: page.routeDefinition,
+            };
     final delegate = ElixirRouterDelegate(
       controller: controller,
       observers: observers,

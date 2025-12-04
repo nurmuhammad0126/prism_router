@@ -1,16 +1,15 @@
+import 'package:elixir/elixir.dart';
 import 'package:flutter/material.dart';
-
-import 'routes.dart';
 
 /// {@template custom_material_route}
 /// CustomMaterialRoute widget.
 /// {@endtemplate}
 class CustomMaterialRoute extends PageRoute<void> {
   /// {@macro custom_material_route}
-  CustomMaterialRoute({required AppPage page}) : super(settings: page);
+  CustomMaterialRoute({required ElixirPage page}) : super(settings: page);
 
   /// {@macro custom_material_route}
-  AppPage get page => settings as AppPage;
+  ElixirPage get page => settings as ElixirPage;
 
   @override
   Widget buildPage(

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
@@ -21,7 +19,7 @@ class ElixirRouteInformationParser
   Future<List<ElixirPage>> parseRouteInformation(
     RouteInformation routeInformation,
   ) async {
-    Uri uri = routeInformation.uri;
+    var uri = routeInformation.uri;
 
     // On web, if fragment is empty but we're using hash routing,
     // try to read directly from browser URL
@@ -40,27 +38,15 @@ class ElixirRouteInformationParser
             fragment = '/$fragment';
           }
           uri = Uri(path: '/', fragment: fragment);
-          log('Read hash from browser: "$hash" -> fragment="$fragment"');
         }
-      } on Object catch (e) {
-        log('Error reading browser hash: $e');
+      } on Object {
+        // Ignore errors when reading browser hash
       }
     }
 
-    // Debug: log what we're receiving
-    log(
-      'parseRouteInformation: path="${uri.path}", fragment="${uri.fragment}", '
-      'pathSegments=${uri.pathSegments}, fullUri="${uri.toString()}"',
-    );
-
     final encodedSegments = decodeUri(uri);
 
-    log('decoded segments: ${encodedSegments.map((s) => s.name).toList()}');
-
     if (encodedSegments.isEmpty) {
-      log(
-        'No segments found, returning initialPages: ${initialPages.map((p) => p.name).toList()}',
-      );
       return initialPages;
     }
 
@@ -69,15 +55,11 @@ class ElixirRouteInformationParser
       final definition = routeBuilders[segment.name];
       if (definition == null) {
         // If any route is not found, fall back to initial pages
-        log(
-          'Route definition not found for: ${segment.name}, returning initialPages',
-        );
         return initialPages;
       }
       pages.add(definition.builder(segment.arguments));
     }
 
-    log('Successfully parsed pages: ${pages.map((p) => p.name).toList()}');
     return pages;
   }
 
@@ -88,9 +70,10 @@ class ElixirRouteInformationParser
         location.startsWith('/') ? location : '/$location';
 
     if (kIsWeb) {
-      log(
-        'restoreRouteInformation: location=$location, normalized=$normalizedLocation',
-      );
+      // NOTE: Using deprecated 'location' parameter is necessary for web reload
+      // functionality. Without it, browser refresh causes navigation to fail.
+      // The 'uri' parameter alone doesn't properly handle hash routing on reload.
+      // ignore: deprecated_member_use
       return RouteInformation(location: normalizedLocation);
     }
 

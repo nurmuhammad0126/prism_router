@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prism_router/prism_router.dart';
 
-import 'routes_ultra_simple.dart';
+import 'routes.dart';
 
 mixin RouteStateMixin<T extends StatefulWidget> on State<T> {
   late PrismNavigationState initialPages;

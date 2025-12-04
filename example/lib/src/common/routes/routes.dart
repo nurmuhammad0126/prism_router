@@ -7,13 +7,20 @@ import '../../feature/profile/profile_screen.dart';
 import '../../feature/settings/settings_screen.dart';
 import 'custom_route_transitions.dart';
 
-/// Type definition for the page.
+final pages = [
+  const HomePage(),
+  SettingsPage(data: ''),
+  const ProfilePage(),
+  DetailsPage(userId: '', note: ''),
+];
+
 @immutable
 sealed class AppPage extends PrismPage {
   const AppPage({
     required super.name,
     required super.child,
     super.arguments,
+    super.tags,
     super.key,
   });
 
@@ -31,15 +38,8 @@ sealed class AppPage extends PrismPage {
 final class HomePage extends AppPage {
   const HomePage() : super(child: const HomeScreen(), name: 'home');
 
-  factory HomePage.fromArguments(Map<String, Object?> _) => const HomePage();
-
   @override
-  Set<String> get tags => {'home'};
-
-  static const route = PrismRouteDefinition(
-    name: 'home',
-    builder: HomePage.fromArguments,
-  );
+  PrismPage pageBuilder(Map<String, Object?> _) => const HomePage();
 }
 
 final class SettingsPage extends AppPage {
@@ -47,73 +47,56 @@ final class SettingsPage extends AppPage {
     : super(
         child: SettingsScreen(data: data),
         name: 'settings',
+        tags: 'settings',
         arguments: {'data': data},
       );
-
-  factory SettingsPage.fromArguments(Map<String, Object?> arguments) =>
-      SettingsPage(data: arguments['data'] as String? ?? '');
 
   final String data;
 
   @override
-  Route<void> createRoute(BuildContext context) =>
-      CustomMaterialRoute(page: this);
+  PrismPage pageBuilder(Map<String, Object?> arguments) {
+    // Pattern matching - type-safe, no cast needed, IDE autocomplete works!
+    if (arguments case {'data': String data}) {
+      return SettingsPage(data: data);
+    }
+    // Fallback if pattern doesn't match
+    return SettingsPage(data: arguments['data'] as String? ?? '');
+  }
 
   @override
-  Set<String> get tags => {'settings'};
-
-  static const route = PrismRouteDefinition(
-    name: 'settings',
-    builder: SettingsPage.fromArguments,
-  );
+  Route<void> createRoute(BuildContext context) =>
+      CustomMaterialRoute(page: this);
 }
 
 final class ProfilePage extends AppPage {
   const ProfilePage() : super(name: 'profile', child: const ProfileScreen());
 
-  factory ProfilePage.fromArguments(Map<String, Object?> _) =>
-      const ProfilePage();
-
   @override
-  Set<String> get tags => {'profile'};
-
-  static const route = PrismRouteDefinition(
-    name: 'profile',
-    builder: ProfilePage.fromArguments,
-  );
+  PrismPage pageBuilder(Map<String, Object?> _) => const ProfilePage();
 }
 
 final class DetailsPage extends AppPage {
   DetailsPage({required this.userId, required this.note})
     : super(
         name: 'details',
+        tags: {'details'}, // Tags from super!
         child: DetailsScreen(userId: userId, note: note),
         arguments: {'userId': userId, 'note': note},
-      );
-
-  factory DetailsPage.fromArguments(Map<String, Object?> arguments) =>
-      DetailsPage(
-        userId: arguments['userId'] as String? ?? '',
-        note: arguments['note'] as String? ?? '',
       );
 
   final String userId;
   final String note;
 
   @override
-  Set<String> get tags => {'details'};
-
-  static const route = PrismRouteDefinition(
-    name: 'details',
-    builder: DetailsPage.fromArguments,
-  );
-}
-
-abstract final class AppRoutes {
-  static const definitions = [
-    HomePage.route,
-    SettingsPage.route,
-    ProfilePage.route,
-    DetailsPage.route,
-  ];
+  PrismPage pageBuilder(Map<String, Object?> arguments) {
+    // Pattern matching - type-safe, no cast needed, IDE autocomplete works!
+    if (arguments case {'userId': String userId, 'note': String note}) {
+      return DetailsPage(userId: userId, note: note);
+    }
+    // Fallback if pattern doesn't match
+    return DetailsPage(
+      userId: arguments['userId'] as String? ?? '',
+      note: arguments['note'] as String? ?? '',
+    );
+  }
 }

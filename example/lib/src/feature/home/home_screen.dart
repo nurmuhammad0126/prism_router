@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stack = context.prism.state;
+    final stack = context.prism.state; // Access navigation state
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reset to home',
-            onPressed: () => context.prism.resetTo([const HomePage()]),
+            onPressed: () => context.setStack([const HomePage()]),
           ),
         ],
       ),
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Open settings',
               subtitle: 'Pushes a custom routed page with transition override',
               onTap:
-                  () => context.prism.push(
+                  () => context.push(
                     SettingsPage(
                       data: 'Updated @ ${DateTime.now().toIso8601String()}',
                     ),
@@ -83,14 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icons.person,
               title: 'Push profile',
               subtitle: 'Simple page that can open details',
-              onTap: () => context.prism.push(const ProfilePage()),
+              onTap: () => context.push(const ProfilePage()),
             ),
             _NavigationTile(
               icon: Icons.description,
               title: 'Push details',
               subtitle: 'Pass data arguments & show tag-based back handling',
               onTap:
-                  () => context.prism.push(
+                  () => context.push(
                     DetailsPage(
                       userId: '42',
                       note: 'Opened directly from home',

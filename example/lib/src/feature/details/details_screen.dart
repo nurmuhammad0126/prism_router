@@ -19,13 +19,13 @@ class DetailsScreen extends StatelessWidget {
       title: const Text('Details'),
       leading: IconButton(
         icon: const Icon(Icons.close),
-        onPressed: context.prism.pop,
+        onPressed: context.pop,
       ),
       actions: [
         IconButton(
           tooltip: 'Back to home',
           icon: const Icon(Icons.home),
-          onPressed: () => context.prism.resetTo([const HomePage()]),
+          onPressed: () => context.pushReplacement(const HomePage()),
         ),
       ],
     ),

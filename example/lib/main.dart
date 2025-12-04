@@ -4,6 +4,5 @@ import 'src/common/widget/app.dart';
 
 void main() => runZonedGuarded<void>(
   () => runApp(const App()),
-  (error, stackTrace) =>
-      print('Top level exception: $error'), // ignore: avoid_print
+  (error, stackTrace) => log('Top level exception: $error'),
 );

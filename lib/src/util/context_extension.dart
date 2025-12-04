@@ -17,17 +17,9 @@ extension PrismContextExtension on BuildContext {
   /// Pushes a new page onto the navigation stack.
   ///
   /// Prevents pushing the same page if it's already at the top of the stack.
-  void push(PrismPage page) {
-    final controller = prism;
-    if (controller.state.isNotEmpty &&
-        controller.state.last.name == page.name) {
-      // Don't push the same page twice - prevents errors
-      return;
-    }
-    controller.push(page);
-  }
+  void push(PrismPage page) => prism.push(page);
 
-  /// Replaces the top page with a new page (equivalent to pushReplacement).
+  /// Replaces the top page with a new page.
   void pushReplacement(PrismPage page) => prism.pushReplacement(page);
 
   /// Pushes a new page and removes all previous pages until the predicate is true.
@@ -37,10 +29,15 @@ extension PrismContextExtension on BuildContext {
   /// Pushes a new page and removes all previous pages.
   void pushAndRemoveAll(PrismPage page) => prism.pushAndRemoveAll(page);
 
-  /// Resets the navigation stack to the given pages.
-  void resetTo(List<PrismPage> pages) => prism.resetTo(pages);
+  /// Sets the navigation stack to the given pages.
+  ///
+  /// This replaces the entire navigation stack with the provided pages.
+  void setStack(List<PrismPage> pages) => prism.setStack(pages);
 
   /// Applies a custom transformation to the navigation stack.
-  void change(List<PrismPage> Function(List<PrismPage> current) transform) =>
-      prism.change(transform);
+  ///
+  /// Use this for advanced navigation scenarios where you need fine-grained control.
+  void transformStack(
+    List<PrismPage> Function(List<PrismPage> current) transform,
+  ) => prism.transformStack(transform);
 }

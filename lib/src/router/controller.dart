@@ -46,7 +46,7 @@ class PrismController extends ChangeNotifier {
   /// Returns `true` if a page was popped, `false` if the stack has only one page.
   bool pop() {
     if (_state.length < 2) return false;
-    change((pages) => pages..removeLast());
+    transformStack((pages) => pages..removeLast());
     return true;
   }
 
@@ -58,10 +58,10 @@ class PrismController extends ChangeNotifier {
       // Don't push the same page twice
       return;
     }
-    change((pages) => pages..add(page));
+    transformStack((pages) => pages..add(page));
   }
 
-  /// Replaces the top page with a new page (equivalent to pushReplacement).
+  /// Replaces the top page with a new page.
   ///
   /// If the stack is empty, pushes the page instead.
   void pushReplacement(PrismPage page) {
@@ -73,7 +73,7 @@ class PrismController extends ChangeNotifier {
     if (_state.last.name == page.name) {
       return;
     }
-    change((pages) => [...pages..removeLast(), page]);
+    transformStack((pages) => [...pages..removeLast(), page]);
   }
 
   /// Pushes a new page and removes all previous pages until the predicate is true.
@@ -90,33 +90,31 @@ class PrismController extends ChangeNotifier {
     }
     // Add the new page
     newStack.add(page);
-    resetTo(newStack);
+    setStack(newStack);
   }
 
-  /// Resets the stack to the given pages (equivalent to pushAndRemoveUntil with always false).
+  /// Pushes a new page and removes all previous pages.
   ///
-  /// Removes all previous pages and sets the stack to the given pages.
+  /// Equivalent to `pushAndRemoveUntil` with always false predicate.
   void pushAndRemoveAll(PrismPage page) {
-    resetTo([page]);
+    setStack([page]);
   }
 
-  /// Resets the stack to the given pages.
+  /// Sets the navigation stack to the given pages.
   ///
-  /// This is a lower-level method. Prefer [pushAndRemoveAll] or [pushAndRemoveUntil] for common use cases.
-  void resetTo(List<PrismPage> pages) {
+  /// This replaces the entire navigation stack with the provided pages.
+  /// Prefer [pushAndRemoveAll] or [pushAndRemoveUntil] for common use cases.
+  void setStack(List<PrismPage> pages) {
     if (pages.isEmpty) return;
     _setState(_applyGuards(List<PrismPage>.from(pages)));
   }
 
-  /// Resets the stack to the given pages (alias for resetTo).
-  @Deprecated('Use resetTo instead')
-  void reset(List<PrismPage> pages) => resetTo(pages);
-
-  /// Replaces the top page with a new page (alias for pushReplacement).
-  @Deprecated('Use pushReplacement instead')
-  void replaceTop(PrismPage page) => pushReplacement(page);
-
-  void change(List<PrismPage> Function(List<PrismPage> current) transform) {
+  /// Applies a custom transformation to the navigation stack.
+  ///
+  /// Use this for advanced navigation scenarios where you need fine-grained control.
+  void transformStack(
+    List<PrismPage> Function(List<PrismPage> current) transform,
+  ) {
     final next = transform(_state.toList());
     if (next.isEmpty) return;
     final guarded = _applyGuards(List<PrismPage>.from(next));

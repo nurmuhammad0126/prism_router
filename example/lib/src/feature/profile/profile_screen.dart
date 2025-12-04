@@ -16,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
       title: const Text('Profile'),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: context.prism.pop,
+        onPressed: context.pop,
       ),
     ),
     body: Padding(
@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
             icon: const Icon(Icons.description),
             label: const Text('Open details for user #007'),
             onPressed:
-                () => context.prism.push(
+                () => context.push(
                   DetailsPage(userId: '007', note: 'Opened from profile'),
                 ),
           ),

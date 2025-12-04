@@ -16,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
     appBar: AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.prism.pop(),
+        onPressed: context.pop,
       ),
       title: const Text('Settings'),
     ),

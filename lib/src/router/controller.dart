@@ -24,6 +24,7 @@ class PrismController extends ChangeNotifier {
   late UnmodifiableListView<PrismPage> _state;
   late final PrismObserver$NavigatorImpl _observer;
   BuildContext? _guardContext;
+  bool _isClearingHistory = false;
 
   UnmodifiableListView<PrismPage> get state => _state;
 
@@ -106,23 +107,43 @@ class PrismController extends ChangeNotifier {
   ///
   /// Equivalent to `pushAndRemoveUntil` with always false predicate.
   /// This also updates the initial state to prevent back navigation.
-  /// On web, this replaces browser history instead of pushing a new entry.
+  /// On web, this clears all browser history and sets only the new page.
   void pushAndRemoveAll(PrismPage page) {
     final newStack = [page];
     // Update initial pages to the new stack to prevent back navigation
     // This ensures isAtInitialState returns true, preventing back button navigation
     _initialPages = UnmodifiableListView(newStack);
 
-    // On web, replace browser history to prevent back navigation
+    // On web, clear all browser history using location.replace()
+    // This is the ONLY way to truly clear all browser history
     if (kIsWeb) {
       final location = encodeLocation(newStack);
       final normalizedLocation =
           location.startsWith('/') ? location : '/$location';
-      // Use hash routing format to avoid server path conflicts
-      replaceBrowserHistory(normalizedLocation);
+      
+      // Mark that we're clearing history to prevent router from updating URL
+      _isClearingHistory = true;
+      
+      // Clear all browser history - this replaces entire URL and clears ALL history
+      // After this, the page will reload and router will restore state from URL
+      clearAndSetBrowserHistory(normalizedLocation);
+      
+      // Don't call setStack here - location.replace() causes reload,
+      // and router will restore state from URL after reload
+      // The flag will be reset after reload
+      return;
     }
 
+    // For non-web platforms, set stack normally
     setStack(newStack);
+  }
+  
+  /// Returns true if history is being cleared (prevents router from updating URL)
+  bool get isClearingHistory => _isClearingHistory;
+  
+  /// Reset the history clearing flag (called after reload)
+  void resetHistoryClearingFlag() {
+    _isClearingHistory = false;
   }
 
   /// Sets the navigation stack to the given pages.

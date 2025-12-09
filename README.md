@@ -1,6 +1,6 @@
 # Prism Router
 
-Prism Router is a declarative navigation package for Flutter that provides a clean, type-safe approach to managing navigation state using the Navigator 2.0 API.
+A declarative navigation package for Flutter that provides a clean, type-safe approach to managing navigation state using the Navigator 2.0 API.
 
 ## Overview
 
@@ -13,7 +13,7 @@ Prism Router simplifies Flutter's Navigator 2.0 implementation by providing:
 - **State Observation**: Track navigation history and state changes
 - **Custom Transitions**: Define custom page transitions per route
 - **Back Button Handling**: Custom back button behavior support
-- **Web Support**: Browser history integration (forward/back/refresh)
+- **Web Support**: Full browser history integration with complete history clearing support
 
 ## Features
 
@@ -25,6 +25,7 @@ Prism Router simplifies Flutter's Navigator 2.0 implementation by providing:
 - ✅ Custom page transitions support
 - ✅ Deep linking support through Navigator 2.0
 - ✅ Browser history integration on Flutter web (forward/back/refresh)
+- ✅ Complete browser history clearing with `pushAndRemoveAll()` on web
 
 ## Getting Started
 
@@ -34,7 +35,8 @@ Add Prism Router to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  prism_router: ^0.0.1
+  prism_router: ^0.1.0
+  web: ^0.5.0  # Required for web support
 ```
 
 Then run:
@@ -356,6 +358,7 @@ context.pushReplacement(SuccessPage(message: 'Form submitted'));
 - Adds the new page at the top
 - User cannot go back to the replaced page
 - If stack is empty, it pushes instead
+- Prevents replacing with the same page
 
 **Use Cases:**
 - Login/authentication flows
@@ -365,9 +368,9 @@ context.pushReplacement(SuccessPage(message: 'Form submitted'));
 
 ---
 
-### 5. `context.pushAndRemoveAll(PrismPage page)`
+### 5. `context.pushAndRemoveAll(PrismPage page)` ⭐
 
-**Purpose:** Push a new page and remove ALL previous pages from the stack.
+**Purpose:** Push a new page and remove ALL previous pages from the stack. **On web, this also clears all browser history.**
 
 **When to use:** When you want to start fresh with a new page and clear all navigation history.
 
@@ -378,19 +381,30 @@ context.pushAndRemoveAll(const LoginPage());
 
 // After completing onboarding, clear and go to home
 context.pushAndRemoveAll(const HomePage());
+
+// From details screen, go directly to home (clears all history)
+context.pushAndRemoveAll(const HomePage());
 ```
 
 **Behavior:**
 - Removes all pages from the stack
 - Adds the new page as the only page
 - User cannot go back (no previous pages)
+- **On web:** Clears all browser history entries, leaving only the new URL
 - Equivalent to `setStack([page])`
+
+**Web Behavior:**
+- Uses `history.go()` to navigate back to the first entry
+- Replaces the first entry with the new URL
+- This effectively removes all intermediate history entries
+- Browser back button will exit the app or go to the page before the app was loaded
 
 **Use Cases:**
 - Logout functionality
 - Completing onboarding
 - Resetting app state
 - Deep link navigation
+- Clearing navigation history on web
 
 ---
 
@@ -497,16 +511,6 @@ context.transformStack((stack) {
   final newStack = List<PrismPage>.from(stack);
   newStack.insert(1, const MiddlePage());
   return newStack;
-});
-
-// Remove duplicate pages (keep only last occurrence)
-context.transformStack((stack) {
-  final seen = <String>{};
-  return stack.reversed
-      .where((page) => seen.add(page.name))
-      .toList()
-      .reversed
-      .toList();
 });
 ```
 
@@ -744,15 +748,6 @@ class CustomMaterialRoute extends PageRoute<void> {
     //   ).animate(animation),
     //   child: child,
     // );
-    
-    // Or zoom transition
-    // return ZoomPageTransitionsBuilder().buildTransitions(
-    //   this,
-    //   context,
-    //   animation,
-    //   secondaryAnimation,
-    //   child,
-    // );
   }
 
   @override
@@ -786,6 +781,7 @@ Prism Router automatically syncs navigation state with browser URL, enabling:
 - Page refresh (restores navigation stack)
 - Direct URL navigation
 - Shareable URLs
+- **Complete browser history clearing** with `pushAndRemoveAll()`
 
 ### Setup for Web
 
@@ -809,7 +805,26 @@ _router = PrismRouter.router(
 ### URL Structure
 
 - Simple page: `/home`
-- Page with arguments: `/details~userId=123&note=Hello`
+- Page with arguments: `/details~{userId: 123, note: Hello}`
+
+### Browser History Clearing
+
+When using `pushAndRemoveAll()` on web, Prism Router:
+
+1. Navigates back to the first entry in browser history using `history.go()`
+2. Replaces that entry with the new URL using `replaceState()`
+3. This effectively removes all intermediate history entries
+4. Browser back button will exit the app or go to the page before the app was loaded
+
+**Example:**
+```dart
+// From details screen, go to home and clear all history
+context.pushAndRemoveAll(const HomePage());
+
+// Browser history before: [/home, /home/profile, /home/profile/details]
+// Browser history after: [#/home]
+// Back button will exit app
+```
 
 ---
 
@@ -940,6 +955,14 @@ if (user.isLoggedIn) {
 }
 ```
 
+### Pattern 6: Logout with History Clearing
+
+```dart
+// Logout and clear all navigation history
+// On web, this also clears browser history
+context.pushAndRemoveAll(const LoginPage());
+```
+
 ---
 
 ## Troubleshooting
@@ -966,6 +989,10 @@ if (user.isLoggedIn) {
 ### Issue: Same page pushed twice
 
 **Solution:** This is prevented automatically. If you need to push the same page, use `pushReplacement()` or `setStack()`.
+
+### Issue: Browser history not clearing on web
+
+**Solution:** Make sure you're using `pushAndRemoveAll()` which properly clears browser history. Regular `push()` or `pushReplacement()` will add to browser history.
 
 ---
 
@@ -994,7 +1021,7 @@ PrismRouter.router({
 - `pop()`: Pop current page
 - `pushReplacement(PrismPage)`: Replace top page
 - `pushAndRemoveUntil(PrismPage, predicate)`: Push and remove until
-- `pushAndRemoveAll(PrismPage)`: Push and remove all
+- `pushAndRemoveAll(PrismPage)`: Push and remove all (clears browser history on web)
 - `setStack(List<PrismPage>)`: Set the navigation stack
 - `transformStack(transform)`: Custom transformation
 
@@ -1006,7 +1033,7 @@ PrismRouter.router({
 | `context.pop()` | Pop the current page |
 | `context.canPop` | Check if a page can be popped |
 | `context.pushReplacement(PrismPage)` | Replace the top page |
-| `context.pushAndRemoveAll(PrismPage)` | Push and remove all previous pages |
+| `context.pushAndRemoveAll(PrismPage)` | Push and remove all previous pages (clears browser history on web) |
 | `context.pushAndRemoveUntil(PrismPage, predicate)` | Push and remove until condition |
 | `context.setStack(List<PrismPage>)` | Set the navigation stack to specific pages |
 | `context.transformStack(transform)` | Apply custom transformation to the stack |
@@ -1017,6 +1044,14 @@ PrismRouter.router({
 ## Complete Example
 
 Check out the [example](example/) directory for a complete working application demonstrating all features.
+
+The example includes:
+- Home screen with navigation options
+- Settings page with custom transitions
+- Profile page
+- Details page with arguments
+- Browser history clearing demonstration
+- Navigation state observation
 
 ---
 

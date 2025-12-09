@@ -79,6 +79,33 @@ class PrismRouteInformationParser
         location.startsWith('/') ? location : '/$location';
 
     if (kIsWeb) {
+      // CRITICAL: Check if current browser URL already matches what we want to set
+      // This prevents router from creating new history entries when URL is already correct
+      // This is especially important after location.replace() in pushAndRemoveAll
+      try {
+        // ignore: avoid_web_libraries_in_flutter
+        final currentUrl = Uri.base;
+        final currentHash = currentUrl.fragment;
+        
+        // Normalize current hash for comparison (remove leading #, ensure leading /)
+        var normalizedHash = currentHash;
+        if (normalizedHash.startsWith('#')) {
+          normalizedHash = normalizedHash.substring(1);
+        }
+        if (!normalizedHash.startsWith('/')) {
+          normalizedHash = '/$normalizedHash';
+        }
+        
+        // If URL already matches exactly, return null to prevent router from updating
+        // This is crucial: prevents creating new history entries after location.replace()
+        if (normalizedHash == normalizedLocation) {
+          // URL already matches - don't update to avoid creating new history entry
+          return null;
+        }
+      } on Object {
+        // Ignore errors when reading browser URL, proceed with normal update
+      }
+      
       // Use hash-based routing to avoid conflicts with server paths
       // RouteInformation(location:) on web with hash routing should use just the path
       // Flutter Router will handle adding the # prefix

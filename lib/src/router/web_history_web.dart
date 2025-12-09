@@ -56,7 +56,7 @@ void clearAndSetBrowserHistory(String url) {
 
       // Step 1: Navigate back to the first entry
       // This removes all intermediate entries from the navigation stack
-      // Note: This will trigger a popstate event, but we handle it
+      // Note: This will trigger a pop_state event, but we handle it
       web.window.history.go(-stepsBack);
 
       // Step 2: After a brief delay, replace the first entry

@@ -47,7 +47,7 @@ final class SettingsPage extends AppPage {
     : super(
         child: SettingsScreen(data: data),
         name: 'settings',
-        tags: 'settings',
+        tags: {'settings'},
         arguments: {'data': data},
       );
 

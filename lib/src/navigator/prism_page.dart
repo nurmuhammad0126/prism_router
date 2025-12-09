@@ -9,12 +9,12 @@ abstract base class PrismPage extends Page<void> {
     required String super.name,
     required this.child,
     required Map<String, Object?>? super.arguments,
-    Object? tags,
+    Set<String>? tags,
     super.key,
   }) : _tags = tags;
 
   final Widget child;
-  final Object? _tags;
+  final Set<String>? _tags;
 
   /// Tags for page identification and filtering.
   ///
@@ -53,10 +53,7 @@ abstract base class PrismPage extends Page<void> {
   Set<String> get tags {
     if (_tags == null) return {name};
     final tags = _tags;
-    if (tags is String) return {tags};
-    if (tags is Set<String>) return tags;
-    if (tags is Iterable<String>) return tags.cast<String>().toSet();
-    return {name};
+    return tags;
   }
 
   /// Builds a page instance from arguments.

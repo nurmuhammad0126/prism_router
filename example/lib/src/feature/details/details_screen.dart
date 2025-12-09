@@ -25,7 +25,7 @@ class DetailsScreen extends StatelessWidget {
         IconButton(
           tooltip: 'Back to home',
           icon: const Icon(Icons.home),
-          onPressed: () => context.pushReplacement(const HomePage()),
+          onPressed: () => context.pushAndRemoveAll(const HomePage()),
         ),
       ],
     ),

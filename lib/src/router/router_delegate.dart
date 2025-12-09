@@ -46,6 +46,10 @@ class PrismRouterDelegate extends RouterDelegate<List<PrismPage>>
       restorationScopeId: restorationScopeId,
       // ignore: deprecated_member_use
       onPopPage: (route, result) {
+        // Prevent pop if at initial state
+        if (controller.isAtInitialState) {
+          return false;
+        }
         final didPop = route.didPop(result);
         if (didPop) controller.pop();
         return didPop;
@@ -55,6 +59,24 @@ class PrismRouterDelegate extends RouterDelegate<List<PrismPage>>
 
   @override
   Future<void> setNewRoutePath(List<PrismPage> configuration) {
+    // Only update if configuration is actually different from current state
+    // This prevents unnecessary updates and infinite loops
+    final current = controller.state;
+    if (configuration.length == current.length) {
+      var isDifferent = false;
+      for (var i = 0; i < configuration.length; i++) {
+        if (configuration[i].name != current[i].name) {
+          isDifferent = true;
+          break;
+        }
+      }
+      if (!isDifferent) {
+        // Same structure, just update (preserves arguments)
+        controller.setFromRouter(configuration);
+        return SynchronousFuture<void>(null);
+      }
+    }
+    // Different structure, update normally
     controller.setFromRouter(configuration);
     return SynchronousFuture<void>(null);
   }

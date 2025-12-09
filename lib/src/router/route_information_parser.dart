@@ -21,26 +21,35 @@ class PrismRouteInformationParser
   ) async {
     var uri = routeInformation.uri;
 
-    // On web, if fragment is empty but we're using hash routing,
-    // try to read directly from browser URL
-    if (kIsWeb && uri.fragment.isEmpty && uri.pathSegments.isEmpty) {
+    // On web, always use hash routing to avoid server path conflicts
+    // Completely ignore server paths and only use fragments
+    if (kIsWeb) {
+      // Always read from browser URL fragment, ignore server paths
       try {
         // ignore: avoid_web_libraries_in_flutter
         final location = Uri.base;
         final hash = location.fragment;
+
         if (hash.isNotEmpty) {
-          // Reconstruct URI with fragment from browser
+          // Use fragment from browser URL (hash routing)
           var fragment = hash;
+          // Remove leading # if present (fragment already contains it)
           if (fragment.startsWith('#')) {
             fragment = fragment.substring(1);
           }
+          // Ensure it starts with '/'
           if (!fragment.startsWith('/')) {
             fragment = '/$fragment';
           }
           uri = Uri(path: '/', fragment: fragment);
+        } else {
+          // No hash in URL, use initial pages
+          // This ensures we always use hash routing, never server paths
+          return initialPages;
         }
       } on Object {
-        // Ignore errors when reading browser hash
+        // Ignore errors when reading browser hash, fall back to initial pages
+        return initialPages;
       }
     }
 
@@ -70,6 +79,11 @@ class PrismRouteInformationParser
         location.startsWith('/') ? location : '/$location';
 
     if (kIsWeb) {
+      // Use hash-based routing to avoid conflicts with server paths
+      // RouteInformation(location:) on web with hash routing should use just the path
+      // Flutter Router will handle adding the # prefix
+      // However, to ensure server paths are completely ignored, we also need to
+      // manually replace browser history when navigation happens (done in controller)
       // NOTE: Using deprecated 'location' parameter is necessary for web reload
       // functionality. Without it, browser refresh causes navigation to fail.
       // The 'uri' parameter alone doesn't properly handle hash routing on reload.

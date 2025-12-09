@@ -9,7 +9,12 @@ extension PrismContextExtension on BuildContext {
   PrismController get prism => PrismScope.of(this, listen: false);
 
   /// Checks if a page can be popped from the navigation stack.
-  bool get canPop => Navigator.canPop(this);
+  /// Returns false if at initial state to prevent back navigation.
+  bool get canPop {
+    if (!Navigator.canPop(this)) return false;
+    // Also check if we're at initial state
+    return !prism.isAtInitialState;
+  }
 
   /// Pops the current page from the navigation stack.
   void pop() => prism.pop();

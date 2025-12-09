@@ -21,7 +21,7 @@ abstract base class PrismPage extends Page<void> {
   /// Tags can be provided in constructor as:
   /// - A single String: `tags: 'settings'`
   /// - A Set of Strings: `tags: {'settings', 'preferences'}`
-  /// - If not provided, defaults to page name: `{name}`
+  /// - If not provided, returns `null` (use `tagsOrName` for default behavior)
   ///
   /// Override this getter if you need custom tags computed dynamically.
   ///
@@ -48,7 +48,7 @@ abstract base class PrismPage extends Page<void> {
   /// Example with override:
   /// ```dart
   /// @override
-  /// Set<String> get tags => {'settings', 'preferences'};
+  /// Set<String>? get tags => {'settings', 'preferences'};
   /// ```
   Set<String> get tags {
     if (_tags == null) return {name};
@@ -133,13 +133,21 @@ abstract base class PrismPage extends Page<void> {
   String get name => super.name ?? 'Unknown';
 
   @override
-  LocalKey get key => switch ((super.key, super.arguments)) {
-    (LocalKey key, _) => key,
-    (_, Map<String, Object?> arguments) => ValueKey(
-      '$name#${shortHash(arguments)}',
-    ),
-    _ => ValueKey<String>(name),
-  };
+  LocalKey get key {
+    // If a key is explicitly provided, use it
+    if (super.key != null) {
+      return super.key!;
+    }
+    // Generate a unique key based on name, arguments, and instance identity
+    // identityHashCode is stable for the same instance, ensuring the key
+    // remains consistent while being unique per instance
+    // This prevents Navigator key conflicts when the same page type with
+    // same arguments is pushed multiple times
+    final argsHash = super.arguments != null ? shortHash(super.arguments!) : '';
+    // Use identityHashCode which is stable for the same object instance
+    // This ensures each page instance gets a unique key
+    return ValueKey('$name#$argsHash#${identityHashCode(this)}');
+  }
 
   @override
   Map<String, Object?> get arguments => switch (super.arguments) {

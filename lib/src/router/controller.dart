@@ -1,11 +1,13 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
 import 'package:flutter/widgets.dart';
 
 import '../navigator/observer.dart';
 import '../navigator/prism_page.dart';
 import '../navigator/types.dart';
+import 'path_codec.dart';
+import 'web_history_stub.dart' if (dart.library.html) 'web_history_web.dart';
 
 class PrismController extends ChangeNotifier {
   PrismController({
@@ -18,7 +20,7 @@ class PrismController extends ChangeNotifier {
   }
 
   final PrismGuard _guards;
-  final UnmodifiableListView<PrismPage> _initialPages;
+  UnmodifiableListView<PrismPage> _initialPages;
   late UnmodifiableListView<PrismPage> _state;
   late final PrismObserver$NavigatorImpl _observer;
   BuildContext? _guardContext;
@@ -28,10 +30,17 @@ class PrismController extends ChangeNotifier {
   PrismStateObserver get observer => _observer;
 
   /// Returns true if we're at the initial state (same as initial pages).
+  /// Compares both name and key to ensure exact match.
   bool get isAtInitialState {
     if (_state.length != _initialPages.length) return false;
     for (var i = 0; i < _state.length; i++) {
-      if (_state[i].name != _initialPages[i].name) return false;
+      final currentPage = _state[i];
+      final initialPage = _initialPages[i];
+      // Compare both name and key for exact match
+      if (currentPage.name != initialPage.name ||
+          currentPage.key != initialPage.key) {
+        return false;
+      }
     }
     return true;
   }
@@ -96,8 +105,24 @@ class PrismController extends ChangeNotifier {
   /// Pushes a new page and removes all previous pages.
   ///
   /// Equivalent to `pushAndRemoveUntil` with always false predicate.
+  /// This also updates the initial state to prevent back navigation.
+  /// On web, this replaces browser history instead of pushing a new entry.
   void pushAndRemoveAll(PrismPage page) {
-    setStack([page]);
+    final newStack = [page];
+    // Update initial pages to the new stack to prevent back navigation
+    // This ensures isAtInitialState returns true, preventing back button navigation
+    _initialPages = UnmodifiableListView(newStack);
+
+    // On web, replace browser history to prevent back navigation
+    if (kIsWeb) {
+      final location = encodeLocation(newStack);
+      final normalizedLocation =
+          location.startsWith('/') ? location : '/$location';
+      // Use hash routing format to avoid server path conflicts
+      replaceBrowserHistory(normalizedLocation);
+    }
+
+    setStack(newStack);
   }
 
   /// Sets the navigation stack to the given pages.
@@ -121,8 +146,27 @@ class PrismController extends ChangeNotifier {
     _setState(guarded);
   }
 
-  void setFromRouter(List<PrismPage> pages) =>
-      _setState(List<PrismPage>.from(pages), force: true);
+  void setFromRouter(List<PrismPage> pages) {
+    // When restoring from URL, preserve arguments from current state
+    // if the new pages don't have them (URL doesn't contain arguments)
+    final pagesWithArgs = <PrismPage>[];
+    for (var i = 0; i < pages.length; i++) {
+      final newPage = pages[i];
+      // If current state has a page at this position with the same name,
+      // and new page has empty arguments, preserve current page's arguments
+      if (i < _state.length &&
+          _state[i].name == newPage.name &&
+          newPage.arguments.isEmpty &&
+          _state[i].arguments.isNotEmpty) {
+        // Keep the current page with its arguments instead of replacing with empty one
+        pagesWithArgs.add(_state[i]);
+      } else {
+        // Use the new page (either different name or has arguments)
+        pagesWithArgs.add(newPage);
+      }
+    }
+    _setState(pagesWithArgs, force: true);
+  }
 
   List<PrismPage> _applyGuards(List<PrismPage> next) {
     if (next.isEmpty) return next;
@@ -136,9 +180,39 @@ class PrismController extends ChangeNotifier {
 
   void _setState(List<PrismPage> next, {bool force = false}) {
     final immutable = UnmodifiableListView<PrismPage>(next);
-    if (!force && listEquals(immutable, _state)) return;
+    // Compare by name and arguments to avoid unnecessary updates
+    if (!force) {
+      // Check if pages are actually different
+      if (immutable.length == _state.length) {
+        var isDifferent = false;
+        for (var i = 0; i < immutable.length; i++) {
+          final current = _state[i];
+          final nextPage = immutable[i];
+          // Compare by name, key, and arguments
+          if (current.name != nextPage.name ||
+              current.key != nextPage.key ||
+              !_mapsEqual(current.arguments, nextPage.arguments)) {
+            isDifferent = true;
+            break;
+          }
+        }
+        if (!isDifferent) return;
+      } else {
+        // Different length, definitely different
+        if (listEquals(immutable, _state)) return;
+      }
+    }
     _state = immutable;
     _observer.changeState((_) => _state);
     notifyListeners();
+  }
+
+  // Helper to compare maps
+  bool _mapsEqual(Map<String, Object?> a, Map<String, Object?> b) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (!b.containsKey(key) || a[key] != b[key]) return false;
+    }
+    return true;
   }
 }
